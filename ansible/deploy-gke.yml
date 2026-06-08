@@ -1,0 +1,25 @@
+---
+- name: Orchestrate Microservice to GKE Topologies
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    manifest_path: "{{ playbook_dir }}/../dist/gke-deployment.yaml"
+    k8s_namespace: "kubeshift-gke"
+    # Force Ansible to use the virtual environment's python binary
+    ansible_python_interpreter: "{{ playbook_dir }}/../venv/bin/python3"
+
+  tasks:
+    - name: Ensure target deployment namespace exists
+      kubernetes.core.k8s:
+        name: "{{ k8s_namespace }}"
+        api_version: v1
+        kind: Namespace
+        state: present
+
+    - name: Deploy compiled K8s application stack to GKE
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ manifest_path }}"
+        namespace: "{{ k8s_namespace }}"
